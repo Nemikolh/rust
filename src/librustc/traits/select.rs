@@ -2072,8 +2072,8 @@ impl<'cx, 'gcx, 'tcx> SelectionContext<'cx, 'gcx, 'tcx> {
                 Where(ty::Binder(Vec::new()))
             }
 
-            ty::TyDynamic(..) | ty::TyStr | ty::TySlice(..) |
-            ty::TyGenerator(..) | ty::TyForeign(..) |
+            ty::TyDynamic(..) | ty::TyStr |
+            ty::TySlice(..) | ty::TyForeign(..) |
             ty::TyRef(_, ty::TypeAndMut { ty: _, mutbl: hir::MutMutable }) => {
                 Never
             }
@@ -2086,6 +2086,10 @@ impl<'cx, 'gcx, 'tcx> SelectionContext<'cx, 'gcx, 'tcx> {
             ty::TyTuple(tys, _) => {
                 // (*) binder moved here
                 Where(ty::Binder(tys.to_vec()))
+            }
+
+            ty::TyGenerator(def_id, substs, _) => {
+                Where(ty::Binder(substs.field_tys(def_id, self.tcx()).collect()))
             }
 
             ty::TyClosure(def_id, substs) => {

@@ -303,6 +303,12 @@ fn build_clone_shim<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>,
                 AggregateKind::Closure(def_id, substs)
             )
         }
+        ty::TyGenerator(def_id, substs, interior) => {
+            builder.tuple_like_shim(
+                &substs.field_tys(def_id, tcx).collect::<Vec<_>>(),
+                AggregateKind::Generator(def_id, substs, interior)
+            )
+        }
         ty::TyTuple(tys, _) => builder.tuple_like_shim(&**tys, AggregateKind::Tuple),
         _ => {
             bug!("clone shim for `{:?}` which is not `Copy` and is not an aggregate", self_ty)
@@ -623,7 +629,7 @@ impl<'a, 'tcx> CloneShimBuilder<'a, 'tcx> {
 
     fn tuple_like_shim(&mut self, tys: &[ty::Ty<'tcx>], kind: AggregateKind<'tcx>) {
         match kind {
-            AggregateKind::Tuple | AggregateKind::Closure(..) => (),
+            AggregateKind::Tuple | AggregateKind::Closure(..) | AggregateKind::Generator(..) => (),
             _ => bug!("only tuples and closures are accepted"),
         };
 
